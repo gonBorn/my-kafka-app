@@ -16,7 +16,7 @@ object Main extends IOApp {
   private val MY_COMIC_BOOK = Book("Elon", "Funny Comic Book", Comic, 100, RELEASE_DATE)
   private val MY_OTHER_BOOK = Book("Lala", "A Random Book", Other, 100, RELEASE_DATE)
 
-  override def run(): IO[ExitCode] = {
+  override def run(args: List[String]): IO[ExitCode] = {
     bootstrap
       .as(ExitCode.Success)
       .handleErrorWith(e => {
@@ -27,7 +27,7 @@ object Main extends IOApp {
 
   private def bootstrap: IO[Unit] = for {
     _ <- IO(println("starting producer ..."))
-    _ <- startProducer().foreverM
+    _ <- startProducer()
   } yield ()
 
   private def parseArgs(args: List[String]): IO[BookType] = {
@@ -84,6 +84,7 @@ object Main extends IOApp {
 
   private def generateProps(): Properties = {
     val props = new Properties()
+    props.put("name", "demo")
     props.put("database.hostname", "localhost")
     props.put("database.port", "5432")
     props.put("database.user", "postgres")

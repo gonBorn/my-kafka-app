@@ -7,6 +7,7 @@ ThisBuild / organizationName := "app"
 
 val circeVersion = "0.14.1"
 val specs2Version = "4.17.0"
+val debeziumVersion = "2.4.0.Final"
 
 val myDependencies = Seq(
   "org.apache.kafka"        % "kafka-clients"                 % "3.5.0",
@@ -16,8 +17,9 @@ val myDependencies = Seq(
   "io.circe"                %% "circe-generic"                % circeVersion,
   "io.circe"                %% "circe-parser"                 % circeVersion,
   "io.circe"                %% "circe-literal"                % circeVersion,
-  "io.debezium" % "debezium-connector-postgres" % "2.4.0.Final",
-  "io.debezium" % "debezium-embedded" % "2.4.0.Final",
+  "io.debezium"             % "debezium-connector-postgres"   % debeziumVersion,
+  "io.debezium"             % "debezium-embedded"             % debeziumVersion,
+  "io.debezium"             % "debezium-core"                 % debeziumVersion,
   "org.specs2"              %% "specs2-core"                  % specs2Version             % "test",
   "org.specs2"              %% "specs2-matcher-extra"         % specs2Version             % "test"
 )
