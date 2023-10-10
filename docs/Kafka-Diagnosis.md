@@ -40,7 +40,7 @@ kafka-topics --bootstrap-server broker:9092 --delete --topic my-topic
 Run the below command
 
 ```bash
-kafka-console-producer --broker-list broker:9092 --topic my-topic
+kafka-console-producer --broker-list broker:9092 --topic my-books-topic
 ```
 
 This will put us in a kafka streaming terminal. To send messages to this topic write some text and press enter.
@@ -48,5 +48,5 @@ This will put us in a kafka streaming terminal. To send messages to this topic w
 ### Consuming events from a topic
 
 ```bash
-kafka-console-consumer --bootstrap-server broker:9092 --topic my-topic --from-beginning
+kafka-console-consumer --bootstrap-server broker:9092 --topic my-books-topic --from-beginning
 ```

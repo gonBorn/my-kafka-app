@@ -16,6 +16,8 @@ val myDependencies = Seq(
   "io.circe"                %% "circe-generic"                % circeVersion,
   "io.circe"                %% "circe-parser"                 % circeVersion,
   "io.circe"                %% "circe-literal"                % circeVersion,
+  "io.debezium" % "debezium-connector-postgres" % "2.4.0.Final",
+  "io.debezium" % "debezium-embedded" % "2.4.0.Final",
   "org.specs2"              %% "specs2-core"                  % specs2Version             % "test",
   "org.specs2"              %% "specs2-matcher-extra"         % specs2Version             % "test"
 )

@@ -1,9 +1,13 @@
 package app
 
-import app.schema.{Book, BookType, Comic, Tech, Other}
+import app.schema._
 import cats.effect.{ExitCode, IO, IOApp}
+import io.circe._
+import io.debezium.config.Configuration
+import io.debezium.embedded.EmbeddedEngine
 
 import java.time.LocalDate
+import java.util.Properties
 
 object Main extends IOApp {
 
@@ -12,14 +16,19 @@ object Main extends IOApp {
   private val MY_COMIC_BOOK = Book("Elon", "Funny Comic Book", Comic, 100, RELEASE_DATE)
   private val MY_OTHER_BOOK = Book("Lala", "A Random Book", Other, 100, RELEASE_DATE)
 
-  override def run(args: List[String]): IO[ExitCode] = {
-    for {
-      _ <- IO(println("starting producer ..."))
-      bookType <- parseArgs(args)
-      _ <- startProducer(bookType)
-      _ <- IO(println("sent a message ..."))
-    } yield ExitCode.Success
+  override def run(): IO[ExitCode] = {
+    bootstrap
+      .as(ExitCode.Success)
+      .handleErrorWith(e => {
+        e.printStackTrace()
+        IO(ExitCode.Error)
+      })
   }
+
+  private def bootstrap: IO[Unit] = for {
+    _ <- IO(println("starting producer ..."))
+    _ <- startProducer().foreverM
+  } yield ()
 
   private def parseArgs(args: List[String]): IO[BookType] = {
     if (args.length < 1)
@@ -40,17 +49,51 @@ object Main extends IOApp {
     }
   }
 
-  private def startProducer(bookType: BookType): IO[Unit] = {
+  private def startProducer(): IO[Unit] = {
     val producerResource = producer.buildKafkaProducerResource
+
+    val config = Configuration.from(generateProps())
+    //    val mySqlConnectorConfig = new PostgresConnectorConfig(config)
+
+    println("######## Started")
 
     producerResource.use {
       producerClient => {
-        val key = bookType.value
-        val book = selectBook(bookType)
-        val value = producer.consCloudEvent(book)
-        IO(producer.send(producerClient, key, value))
+        val engine = EmbeddedEngine.create()
+          .using(config)
+          .notifying(record => {
+            // 将Debezium捕获的变化事件发送到Kafka
+            println(s"######## record ${record}")
+            val book = jawn.decode[Book](record.value().toString)
+            book match {
+              case Right(book) =>
+                val key = book.title
+                val value = producer.consCloudEvent(book)
+                producer.send(producerClient, key, value)
+
+              case Left(error) =>
+                println(s"Error decoding JSON: $error")
+            }
+          })
+          .build()
+
+        IO(engine.run())
       }
     }
+  }
+
+  private def generateProps(): Properties = {
+    val props = new Properties()
+    props.put("database.hostname", "localhost")
+    props.put("database.port", "5432")
+    props.put("database.user", "postgres")
+    props.put("database.password", "postgres")
+    props.put("database.dbname", "postgres")
+    props.put("database.useSSL", "false")
+    props.put("include.schema.changes", "true")
+    props.put("table.include.list", "public.books")
+    props.put("connector.class", "io.debezium.connector.postgresql.PostgresConnector")
+    props
   }
 
 }
